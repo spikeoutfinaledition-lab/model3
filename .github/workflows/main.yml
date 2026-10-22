@@ -7,14 +7,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkita64:latest
-    
+    container:
+      image: ghcr.io/switchbrew/devkitpro:latest
+      options: --user root
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Fix Git permissions
-        run: git config --global --add safe.directory /__w/${{ github.repository }}/${{ github.repository }}
+        run: git config --system --add safe.directory '*'
+
+      - name: Set environment variables
+        run: |
+          echo "DEVKITPRO=/opt/devkitpro" >> $GITHUB_ENV
+          echo "DEVKITA64=/opt/devkitpro/devkitA64" >> $GITHUB_ENV
+          echo "CPATH=/opt/devkitpro/portlibs/switch/include:/opt/devkitpro/devkitA64/include" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -27,8 +37,12 @@ jobs:
           find /opt/devkitpro -name "stdio.h" 2>/dev/null
           echo "Checking for zlib.h..."
           find /opt/devkitpro -name "zlib.h" 2>/dev/null
-          echo "Listing devkitA64 directory..."
-          ls -R /opt/devkitpro/devkitA64/
 
       - name: Build with Make
-        run: make
+        run: make -j$(nproc)
+
+      - name: Upload NRO
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-nro
+          path: "*.nro"

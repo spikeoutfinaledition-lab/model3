@@ -2,43 +2,37 @@ name: Build Switch NRO
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/toolchain-base:latest
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
 
       - name: Fix Git permissions
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        run: git config --global --add safe.directory /github/workspace
+
+      - name: Install devkitPro keyring
+        run: |
+          wget https://github.com/devkitPro/pacman/releases/download/devkitpro-keyring-1.0.1/devkitpro-keyring-1.0.1-1-any.pkg.tar.xz
+          sudo pacman -U --noconfirm devkitpro-keyring-1.0.1-1-any.pkg.tar.xz
 
       - name: Install dependencies
         run: |
-          sudo dkp-pacman -Syu --noconfirm
-          sudo dkp-pacman -S --noconfirm --needed switch-dev switch-libnx switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
+          sudo dkp-pacman -Sy --noconfirm
+          sudo dkp-pacman -S --noconfirm --needed switch-dev switch-mesa switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
 
       - name: Debug environment
         run: |
-          echo "=== search stdio.h ==="
-          find / -name "stdio.h" 2>/dev/null | head -20 || true
-          echo "=== search zlib.h ==="
-          find / -name "zlib.h" 2>/dev/null | head -20 || true
+          echo "Checking for stdio.h..."
+          find /opt/devkitpro -name "stdio.h" 2>/dev/null
+          echo "Checking for zlib.h..."
+          find /opt/devkitpro -name "zlib.h" 2>/dev/null
+          echo "Listing devkitA64 directory..."
+          ls -R /opt/devkitpro/devkitA64/
 
       - name: Build with Make
-        run: |
-          export DEVKITPRO=/opt/devkitpro
-          export DEVKITA64=/opt/devkitpro/devkitA64
-          make -j$(nproc)
-
-      - name: Upload NRO
-        uses: actions/upload-artifact@v4
-        with:
-          name: switch-nro
-          path: "*.nro"
+        run: make

@@ -7,9 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/switchbrew/devkitpro:latest
-      options: --user root
 
     steps:
       - name: Checkout code
@@ -17,8 +14,11 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Fix Git permissions
-        run: git config --system --add safe.directory '*'
+      - name: Install DevKitPro toolchain
+        run: |
+          wget -qO- https://apt.devkitpro.org/install-devkitpro-pacman | sudo bash
+          sudo dkp-pacman -Sy
+          sudo dkp-pacman -S --noconfirm devkitA64 libnx switch-tools libpng switch-libpng zlib switch-zlib
 
       - name: Build with Make
         run: |

@@ -18,18 +18,28 @@ jobs:
         run: |
           # 更新 apt 并安装依赖
           sudo apt-get update
-          sudo apt-get install -y wget
+          sudo apt-get install -y wget ca-certificates
           
-          # 直接下载 .deb 包（绕过有问题的 wget 安装脚本）
-          wget -q https://github.com/devkitPro/pacman/releases/download/v1.0.2/devkitpro-pacman.deb
+          # 尝试多次下载 .deb 包（网络不稳定时重试）
+          for i in 1 2 3 4 5; do
+            echo "Download attempt $i..."
+            wget --timeout=60 --tries=3 -q https://github.com/devkitPro/pacman/releases/download/v1.0.2/devkitpro-pacman.deb && break
+            echo "Download failed, retrying in 10 seconds..."
+            sleep 10
+          done
+          
+          # 确认文件下载成功
+          ls -la devkitpro-pacman.deb
+          
+          # 安装 .deb 包
           sudo dpkg -i devkitpro-pacman.deb
           
-          # 验证 dkp-pacman 已安装
+          # 验证安装
           which dkp-pacman
-          ls /opt/devkitpro/pacman/bin/
           
-          # 安装 Switch 开发套件（包含 devkitA64 + libnx + 所有依赖）
-          sudo dkp-pacman -Syu --noconfirm switch-dev
+          # 同步包数据库并安装 Switch 开发套件
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm switch-dev
 
       - name: Build with Make
         run: |

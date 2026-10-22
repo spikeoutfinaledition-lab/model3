@@ -1,0 +1,36 @@
+*.o
+*.d
+*.so
+*.a
+*.dll
+*.dylib
+*.lib
+*.zip
+*.log
+*.nv
+*.pdb
+*.exp
+*.manifest
+nul
+/old
+
+# VS Code
+.vscode/
+
+# MSVC specific
+/msvc/Debug
+/msvc/Release
+/msvc/*.suo
+/msvc/*.user
+/msvc/*.sdf
+/msvc/*.db
+/msvc/x64
+/msvc/.vs/
+/msvc/*.opendb
+
+*.md
+!Docs/**/*.md
+!/README.md
+
+# Switch build output
+build/

@@ -1,0 +1,74 @@
+
+ifneq (,$(findstring msvc,$(platform)))
+    # --- MSVC Toolchain ---
+    CC  = cl.exe
+    CXX = cl.exe
+    OBJOUT  = -Fo
+    LINKOUT = -out:
+    PSS_STYLE := 2
+
+    ifeq ($(DEBUG), 1)
+        ifeq ($(STATIC_LINKING),1)
+            CFLAGS += -MTd
+            CXXFLAGS += -MTd
+        else
+            CFLAGS += -MDd
+            CXXFLAGS += -MDd
+        endif
+        CFLAGS += -Od -Zi -DDEBUG -D_DEBUG
+        CXXFLAGS += -Od -Zi -DDEBUG -D_DEBUG
+    else
+        ifeq ($(STATIC_LINKING),1)
+            CFLAGS += -MT
+            CXXFLAGS += -MT
+        else
+            CFLAGS += -MD
+            CXXFLAGS += -MD
+        endif
+        CFLAGS += -O2 -DNDEBUG
+        CXXFLAGS += -O2 -DNDEBUG
+    endif
+
+    ifeq ($(STATIC_LINKING),1)
+        LD = lib.exe
+    else
+        LD = link.exe
+    endif
+
+else
+    # --- MinGW / Generic Windows ---
+    TARGET := $(TARGET_NAME)_libretro.dll
+
+    ifeq ($(shell uname -o 2>/dev/null),Msys)
+        # Native Windows MSYS2 build
+        CC  = gcc
+        CXX = g++
+        LDFLAGS  += -L/mingw64/lib -static
+        LIBS += -lz -lpthread -lopengl32 -lglu32 -lgdi32
+    else
+        # Cross-compiling from Ubuntu
+        CC  = x86_64-w64-mingw32-gcc
+        CXX = x86_64-w64-mingw32-g++
+        LIBS += -lopengl32 -lglu32 -lgdi32 -lz
+    endif
+
+    LD  = $(CXX)
+    fpic   := -fPIC
+    SHARED := -shared -static-libgcc -static-libstdc++ -Wl,--export-all-symbols
+    DEFINES  += -D__LIBRETRO__
+    SOURCES_CXX += $(CORE_DIR)/Src/OSD/Windows/FileSystemPath.cpp
+    PSS_STYLE := 2
+    OBJOUT  = -o
+    LINKOUT = -o
+    LIBM    := 
+
+    ifeq ($(DEBUG), 1)
+        CFLAGS   += -O0 -g -DDEBUG
+        CXXFLAGS += -O0 -g -DDEBUG
+    else
+        CFLAGS   += -O2 -DNDEBUG
+        CXXFLAGS += -O2 -DNDEBUG
+    endif
+endif
+
+CXXFLAGS += -std=c++17

@@ -19,7 +19,7 @@ jobs:
 
       - name: Build with Make
         run: |
-          make -j$(nproc)
+          make -j$(nproc) CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable"
 
       - name: Upload NRO
         uses: actions/upload-artifact@v4

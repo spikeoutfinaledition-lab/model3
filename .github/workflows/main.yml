@@ -7,33 +7,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Fix Git permissions
-        run: git config --global --add safe.directory /github/workspace
-
-      - name: Install devkitPro keyring
-        run: |
-          sudo pacman-key --init
-          sudo pacman-key --recv-keys F7FD5492264BB9D0 --keyserver keyserver.ubuntu.com
-          sudo pacman-key --lsign F7FD5492264BB9D0
-          sudo pacman -U --noconfirm https://pkg.devkitpro.org/devkitpro-keyring.pkg.tar.zst
-          sudo pacman-key --populate devkitpro
-
-      - name: Add devkitPro repositories
-        run: |
-          echo "[dkp-libs]" | sudo tee -a /etc/pacman.conf
-          echo "Server = https://pkg.devkitpro.org/packages" | sudo tee -a /etc/pacman.conf
-          echo "[dkp-linux]" | sudo tee -a /etc/pacman.conf
-          echo "Server = https://pkg.devkitpro.org/packages/linux/\$arch/" | sudo tee -a /etc/pacman.conf
+        run: git config --global --add safe.directory /__w/${{ github.repository }}/${{ github.repository }}
 
       - name: Install dependencies
         run: |
-          sudo pacman -Syyu --noconfirm
-          sudo pacman -S --noconfirm --needed switch-dev switch-mesa switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
+          dkp-pacman -Syu --noconfirm
+          dkp-pacman -S --noconfirm --needed switch-dev switch-mesa switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
 
       - name: Debug environment
         run: |

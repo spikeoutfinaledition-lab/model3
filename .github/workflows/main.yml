@@ -12,6 +12,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Fix Git permissions
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Build with Make
         run: |

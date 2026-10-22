@@ -16,7 +16,18 @@ jobs:
 
       - name: Install DevKitPro toolchain
         run: |
+          # 下载并执行官方安装脚本
           wget -qO- https://apt.devkitpro.org/install-devkitpro-pacman | sudo bash
+          
+          # 关键修复：把 dkp-pacman 添加到 PATH
+          echo 'export PATH="/opt/devkitpro/pacman/bin:$PATH"' | sudo tee /etc/profile.d/devkitpro.sh
+          source /etc/profile.d/devkitpro.sh
+          export PATH="/opt/devkitpro/pacman/bin:$PATH"
+          
+          # 确认 dkp-pacman 可用
+          which dkp-pacman || (echo "dkp-pacman still not found, trying /opt/devkitpro/pacman/bin" && ls /opt/devkitpro/pacman/bin/)
+          
+          # 更新并安装工具链
           sudo dkp-pacman -Sy
           sudo dkp-pacman -S --noconfirm devkitA64 libnx switch-tools libpng switch-libpng zlib switch-zlib
 

@@ -16,17 +16,26 @@ jobs:
 
       - name: Install DevKitPro toolchain
         run: |
+          # 安装基础依赖
           sudo apt-get update
-          sudo apt-get install -y wget ca-certificates
-          for i in 1 2 3 4 5; do
-            echo "Download attempt $i..."
-            wget --timeout=60 --tries=3 -q https://github.com/devkitPro/pacman/releases/download/v1.0.2/devkitpro-pacman.deb && break
-            echo "Download failed, retrying..."
-            sleep 10
-          done
-          ls -la devkitpro-pacman.deb
-          sudo dpkg -i devkitpro-pacman.deb
+          sudo apt-get install -y wget ca-certificates gnupg
+          
+          # 配置 DevKitPro 国内镜像源（清华源）
+          sudo tee /etc/apt/sources.list.d/devkitpro.list <<EOF
+          deb https://mirrors.tuna.tsinghua.edu.cn/devkitpro/debian generic main
+          EOF
+          
+          # 导入 GPG 密钥
+          wget -qO - https://devkitpro.org/keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/devkitpro-archive-keyring.gpg
+          
+          # 更新并安装工具链
+          sudo apt-get update
+          sudo apt-get install -y devkitpro-pacman
+          
+          # 验证安装
           which dkp-pacman
+          
+          # 安装 Switch 开发套件
           sudo dkp-pacman -Syu --noconfirm
           sudo dkp-pacman -S --noconfirm switch-dev
 

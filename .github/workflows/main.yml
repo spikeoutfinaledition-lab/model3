@@ -17,13 +17,23 @@ jobs:
 
       - name: Install devkitPro keyring
         run: |
-          wget https://github.com/devkitPro/pacman/releases/download/devkitpro-keyring-1.0.1/devkitpro-keyring-1.0.1-1-any.pkg.tar.xz
-          sudo pacman -U --noconfirm devkitpro-keyring-1.0.1-1-any.pkg.tar.xz
+          sudo pacman-key --init
+          sudo pacman-key --recv-keys F7FD5492264BB9D0 --keyserver keyserver.ubuntu.com
+          sudo pacman-key --lsign F7FD5492264BB9D0
+          sudo pacman -U --noconfirm https://pkg.devkitpro.org/devkitpro-keyring.pkg.tar.zst
+          sudo pacman-key --populate devkitpro
+
+      - name: Add devkitPro repositories
+        run: |
+          echo "[dkp-libs]" | sudo tee -a /etc/pacman.conf
+          echo "Server = https://pkg.devkitpro.org/packages" | sudo tee -a /etc/pacman.conf
+          echo "[dkp-linux]" | sudo tee -a /etc/pacman.conf
+          echo "Server = https://pkg.devkitpro.org/packages/linux/\$arch/" | sudo tee -a /etc/pacman.conf
 
       - name: Install dependencies
         run: |
-          sudo dkp-pacman -Sy --noconfirm
-          sudo dkp-pacman -S --noconfirm --needed switch-dev switch-mesa switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
+          sudo pacman -Syyu --noconfirm
+          sudo pacman -S --noconfirm --needed switch-dev switch-mesa switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
 
       - name: Debug environment
         run: |

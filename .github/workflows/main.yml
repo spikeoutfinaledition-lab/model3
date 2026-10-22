@@ -20,26 +20,11 @@ jobs:
       - name: Fix Git permissions
         run: git config --system --add safe.directory '*'
 
-      - name: Set environment variables
-        run: |
-          echo "DEVKITPRO=/opt/devkitpro" >> $GITHUB_ENV
-          echo "DEVKITA64=/opt/devkitpro/devkitA64" >> $GITHUB_ENV
-          echo "CPATH=/opt/devkitpro/portlibs/switch/include:/opt/devkitpro/devkitA64/include" >> $GITHUB_ENV
-
-      - name: Install dependencies
-        run: |
-          dkp-pacman -Syu --noconfirm
-          dkp-pacman -S --noconfirm --needed switch-dev switch-mesa switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
-
-      - name: Debug environment
-        run: |
-          echo "Checking for stdio.h..."
-          find /opt/devkitpro -name "stdio.h" 2>/dev/null
-          echo "Checking for zlib.h..."
-          find /opt/devkitpro -name "zlib.h" 2>/dev/null
-
       - name: Build with Make
-        run: make -j$(nproc)
+        run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITA64=/opt/devkitpro/devkitA64
+          make -j$(nproc)
 
       - name: Upload NRO
         uses: actions/upload-artifact@v4

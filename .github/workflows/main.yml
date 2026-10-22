@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkita64:latest
+    container: devkitpro/toolchain-base:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,9 +19,22 @@ jobs:
       - name: Fix Git permissions
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      - name: Install dependencies
+        run: |
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm --needed switch-dev switch-libnx switch-zlib switch-bzip2 switch-freetype switch-libpng switch-libjpeg-turbo
+
+      - name: Debug environment
+        run: |
+          echo "=== search stdio.h ==="
+          find / -name "stdio.h" 2>/dev/null | head -20 || true
+          echo "=== search zlib.h ==="
+          find / -name "zlib.h" 2>/dev/null | head -20 || true
+
       - name: Build with Make
         run: |
           export DEVKITPRO=/opt/devkitpro
+          export DEVKITA64=/opt/devkitpro/devkitA64
           make -j$(nproc)
 
       - name: Upload NRO

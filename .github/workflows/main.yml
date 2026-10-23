@@ -3,7 +3,7 @@ name: Build Switch NRO
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # 保留手动触发
+  workflow_dispatch:
 
 jobs:
   build:
@@ -25,9 +25,8 @@ jobs:
           export DEVKITA64=$DEVKITPRO/devkitA64
           export PORTLIBS=$DEVKITPRO/portlibs/switch
           
-          # 只压制警告，不要强行硬塞GL路径、不要强行加-lglad
-          export CFLAGS="-Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter"
+          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter"
           
           export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config
           
-          make -j$(nproc)
+          make LIBS+="-lGL" -j$(nproc)

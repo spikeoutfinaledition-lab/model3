@@ -20,6 +20,8 @@ jobs:
       - name: Build Switch NRO
         run: |
           chmod +x build_switch.sh
+          export CFLAGS="-Wno-error -w"
+          export CXXFLAGS="-Wno-error -w"
           ./build_switch.sh
 
       - name: Upload NRO

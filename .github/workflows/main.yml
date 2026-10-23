@@ -1,32 +1,43 @@
-name: Build Switch NRO
-
-permissions:
-  contents: write
+name: Build
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # 允许手动触发构建
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkita64:latest
-    
+
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          dkp-pacman -S --noconfirm switch-zlib
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        # 安装基础编译工具和 zlib
+        sudo apt-get install -y build-essential zlib1g-dev pkg-config
+        
+        # 安装 OpenGL 相关的开发库，解决 GL/gl.h 缺失的问题
+        sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libglew-dev
+        
+        # ==========================================
+        # 注意：如果你之前解决 403 问题的方案（如安装 devkitPro）
+        # 需要特定步骤，请确保保留在这部分。
+        # ==========================================
 
-      - name: Build
-        run: |
-          export DEVKITPRO=/opt/devkitpro
-          export DEVKITA64=$DEVKITPRO/devkitA64
-          export PORTLIBS=$DEVKITPRO/portlibs/switch
-          export CFLAGS="-I$PORTLIBS/include -Wno-error -w"
-          export LDFLAGS="-L$PORTLIBS/lib -lz"
-          make -j$(nproc)
+    # 针对报错 1：提前生成 Musashi 引擎的 m68kops.h 头文件
+    - name: Generate Musashi headers
+      run: |
+        echo "Generating m68kops.h..."
+        cd Src/CPU/68K/Musashi
+        make
+        cd -
+        
+    # 针对报错 2：执行主项目的编译
+    - name: Build Project
+      run: |
+        make

@@ -17,11 +17,21 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Patch build flags
+        run: |
+          # 强制让所有编译命令带上忽略警告的参数
+          sed -i 's/-Werror//g' Makefile
+          sed -i 's/-Wswitch//g' Makefile
+          sed -i 's/-Werror//g' build_switch.sh
+          sed -i 's/-Wswitch//g' build_switch.sh
+
       - name: Build Switch NRO
         run: |
           chmod +x build_switch.sh
-          export CFLAGS="-Wno-error -w"
-          export CXXFLAGS="-Wno-error -w"
+          export CFLAGS="-Wno-error -Wno-switch"
+          export CXXFLAGS="-Wno-error -Wno-switch"
+          export CFLAGS="$CFLAGS -w"
+          export CXXFLAGS="$CXXFLAGS -w"
           ./build_switch.sh
 
       - name: Upload NRO

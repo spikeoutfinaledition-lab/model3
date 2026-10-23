@@ -3,6 +3,7 @@ name: Build Switch NRO
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch: # 保留手动触发
 
 jobs:
   build:
@@ -16,7 +17,7 @@ jobs:
 
       - name: Install Switch dependencies
         run: |
-          dkp-pacman -Syu --noconfirm switch-zlib switch-bzip2 switch-pkg-config switch-glad switch-mesa
+          dkp-pacman -Syu --noconfirm switch-zlib switch-bzip2 switch-pkg-config switch-gl4es switch-sdl2
 
       - name: Build
         run: |
@@ -24,11 +25,9 @@ jobs:
           export DEVKITA64=$DEVKITPRO/devkitA64
           export PORTLIBS=$DEVKITPRO/portlibs/switch
           
-          # 强制覆盖 CFLAGS 和 LDFLAGS，加入 GL/OpenGL 路径
-          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -I$PORTLIBS/include -I$PORTLIBS/include/GL"
-          export LDFLAGS="-L$PORTLIBS/lib -lz -lglad"
+          # 只压制警告，不要强行硬塞GL路径、不要强行加-lglad
+          export CFLAGS="-Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter"
           
-          # 使用 devkitPro 专属的 pkg-config
           export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config
           
           make -j$(nproc)

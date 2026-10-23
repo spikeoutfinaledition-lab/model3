@@ -1,32 +1,33 @@
-name: Build Supermodel Model3 Switch NRO
+name: Build Switch Homebrew
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: # 支持手动点按钮触发编译
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Setup devkitPro
-        uses: ilove2sleep/setup-devkitpro@v1
+      - name: Setup devkitPro (官方维护，稳定可用)
+        uses: devkitpro/setup-devkitpro@v1
         with:
-          target: a64
-          packages: devkitA64,switch-sdl2,switch-freetype,switch-libpng,switch-zlib
+          packages: switch-dev  # Switch全套编译工具链
 
       - name: Build
         run: |
           make -j$(nproc)
 
-      - name: Upload NRO artifact
+      - name: Upload compiled nro artifact
         uses: actions/upload-artifact@v4
         with:
-          name: supermodel-model3-nro
+          name: switch-build-output
           path: |
-            Switch/*.nro
             *.nro
+            *.nacp
+            *.elf

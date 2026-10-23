@@ -16,10 +16,13 @@ jobs:
 
       - name: Install Switch dependencies
         run: |
-          dkp-pacman -Syu --noconfirm switch-zlib
+          dkp-pacman -Syu --noconfirm switch-zlib switch-bzip2
 
       - name: Build
         run: |
           export DEVKITPRO=/opt/devkitpro
           export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable"
+          # 告诉编译器去 devkitPro 的 Switch 端口库路径下找头文件和库
+          export CPPFLAGS="-I$DEVKITPRO/portlibs/switch/include"
+          export LDFLAGS="-L$DEVKITPRO/portlibs/switch/lib -lz"
           make -j$(nproc)

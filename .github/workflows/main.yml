@@ -14,11 +14,10 @@ jobs:
         with:
           submodules: recursive
 
-      # 👇 新增这一步：安装 Switch 平台的 zlib 库
       - name: Install Switch dependencies
         run: |
           dkp-pacman -Syu --noconfirm switch-zlib
-          
+
       - name: Build
         run: |
           export DEVKITPRO=/opt/devkitpro

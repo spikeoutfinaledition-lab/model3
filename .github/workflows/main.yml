@@ -15,13 +15,14 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install zlib manually
-        run: |
-          wget https://github.com/devkitPro/pacman-packages/releases/download/switch-zlib-1.2.13-1/switch-zlib-1.2.13-1-any.pkg.tar.zst -O /tmp/zlib.pkg.tar.zst
-          mkdir -p /opt/devkitpro/portlibs/switch
-          tar --use-compress-program=unzstd -xvf /tmp/zlib.pkg.tar.zst -C /opt/devkitpro/portlibs/switch --strip-components=1
-          ls /opt/devkitpro/portlibs/switch/include/zlib.h
-
       - name: Build
         run: |
-          export
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITA64=$DEVKITPRO/devkitA64
+          export PORTLIBS=$DEVKITPRO/portlibs/switch
+          
+          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter -I$PORTLIBS/include"
+          export LDFLAGS="-L$PORTLIBS/lib -lz"
+          export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config
+          
+          make -j$(nproc)

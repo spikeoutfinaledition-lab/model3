@@ -1,4 +1,4 @@
-name: Build Switch NRO
+name: Build with Wonderful Toolchain
 
 on:
   push:
@@ -8,27 +8,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkita64:latest
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Switch dependencies
+      - name: Install Wonderful Toolchain
         run: |
-          dkp-pacman -Syu --noconfirm switch-zlib switch-bzip2 switch-pkg-config switch-gl4es switch-sdl2
+          sudo mkdir -p /opt/wonderful
+          sudo chown -R $USER:$USER /opt/wonderful
+          wget https://wonderful.asie.pl/downloads/wonderful-toolchain-linux-x86_64.tar.gz
+          tar -xf wonderful-toolchain-linux-x86_64.tar.gz -C /opt/wonderful
+          echo "/opt/wonderful/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          wf-pacman -Syu --noconfirm
+          wf-pacman -S --noconfirm toolchain-gcc-arm-none-eabi zlib
 
       - name: Build
         run: |
-          export DEVKITPRO=/opt/devkitpro
-          export DEVKITA64=$DEVKITPRO/devkitA64
-          export PORTLIBS=$DEVKITPRO/portlibs/switch
-          
-          # 重点：增加 -I$PORTLIBS/include，让编译器找到zlib.h、gl4es的头文件
-          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter -I$PORTLIBS/include"
-          
-          export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config
-          export PKG_CONFIG_PATH="$PORTLIBS/lib/pkgconfig"
-          
-          make LIBS+="-lGL" -j$(nproc)
+          export BLOCKSDS=/opt/blocksds/core
+          make -j$(nproc)

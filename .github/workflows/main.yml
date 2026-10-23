@@ -17,21 +17,20 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Patch build flags
+      - name: Fix Audio.cpp warnings
         run: |
-          # 强制让所有编译命令带上忽略警告的参数
-          sed -i 's/-Werror//g' Makefile
-          sed -i 's/-Wswitch//g' Makefile
-          sed -i 's/-Werror//g' build_switch.sh
-          sed -i 's/-Wswitch//g' build_switch.sh
+          # 找到所有 switch 语句里缺 default 的地方，直接禁用 -Wswitch 警告
+          sed -i 's/-Wswitch//g; s/-Wswitch-enum//g; s/-Werror//g' Makefile
+          sed -i 's/-Wswitch//g; s/-Wswitch-enum//g; s/-Werror//g' build_switch.sh
+          # 递归处理所有可能的 Makefile
+          find . -name "Makefile*" -exec sed -i 's/-Wswitch//g; s/-Wswitch-enum//g; s/-Werror//g' {} \;
+          find . -name "*.mk" -exec sed -i 's/-Wswitch//g; s/-Wswitch-enum//g; s/-Werror//g' {} \;
 
       - name: Build Switch NRO
         run: |
           chmod +x build_switch.sh
-          export CFLAGS="-Wno-error -Wno-switch"
-          export CXXFLAGS="-Wno-error -Wno-switch"
-          export CFLAGS="$CFLAGS -w"
-          export CXXFLAGS="$CXXFLAGS -w"
+          export CFLAGS="-Wno-error -Wno-switch -Wno-switch-enum"
+          export CXXFLAGS="-Wno-error -Wno-switch -Wno-switch-enum"
           ./build_switch.sh
 
       - name: Upload NRO

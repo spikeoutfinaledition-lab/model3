@@ -1,0 +1,39 @@
+name: Build Switch NRO
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: devkitpro/devkita64:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Patch Audio.cpp
+        run: |
+          # 在 Audio.cpp 的 switch(AudioType) 前加一行 pragma 禁用 -Wswitch 警告
+          sed -i 's/switch (AudioType)/#pragma GCC diagnostic push\n#pragma GCC diagnostic ignored "-Wswitch"\nswitch (AudioType)/' Src/OSD/SDL/Audio.cpp
+          # 在文件末尾恢复 warning
+          echo '#pragma GCC diagnostic pop' >> Src/OSD/SDL/Audio.cpp
+          echo "Patched Audio.cpp"
+
+      - name: Build Switch NRO
+        run: |
+          chmod +x build_switch.sh
+          export CFLAGS="-w"
+          export CXXFLAGS="-w"
+          ./build_switch.sh
+
+      - name: Upload NRO
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-nro
+          path: "*.nro"

@@ -1,3 +1,5 @@
+#define GLEW_NO_GLU
+
 /*
  * Drop-in GLEW replacement for the Supermodel libretro port.
  * Uses glsym from libretro-common for GL extension loading —

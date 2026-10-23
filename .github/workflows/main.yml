@@ -17,11 +17,7 @@ jobs:
 
       - name: Install Switch dependencies
         run: |
-          for i in {1..5}; do
-            dkp-pacman -Sy --noconfirm switch-zlib switch-bzip2 switch-pkg-config switch-gl4es switch-sdl2 && break
-            echo "Attempt $i failed with 403. Retrying in 15 seconds..."
-            sleep 15
-          done
+          dkp-pacman -Syu --noconfirm switch-zlib switch-bzip2 switch-pkg-config switch-gl4es switch-sdl2
 
       - name: Build
         run: |
@@ -29,9 +25,10 @@ jobs:
           export DEVKITA64=$DEVKITPRO/devkitA64
           export PORTLIBS=$DEVKITPRO/portlibs/switch
           
-          # 压制警告防止编译中断
-          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter"
+          # 重点：增加 -I$PORTLIBS/include，让编译器找到zlib.h、gl4es的头文件
+          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter -I$PORTLIBS/include"
           
           export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config
+          export PKG_CONFIG_PATH="$PORTLIBS/lib/pkgconfig"
           
-          make -j$(nproc)
+          make LIBS+="-lGL" -j$(nproc)

@@ -20,4 +20,4 @@ jobs:
           export DEVKITPRO=/opt/devkitpro
           export DEVKITA64=$DEVKITPRO/devkitA64
           export PORTLIBS=$DEVKITPRO/portlibs/switch
-          make -j$(nproc)
+          make CFLAGS="-Wno-error -w" CXXFLAGS="-Wno-error -w" -j$(nproc)

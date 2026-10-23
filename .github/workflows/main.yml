@@ -1,4 +1,4 @@
-name: Build with Wonderful Toolchain
+name: Build Switch NRO
 
 on:
   push:
@@ -8,26 +8,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    container: devkitpro/devkita64:latest
+    
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Wonderful Toolchain
+      - name: Install zlib manually
         run: |
-          sudo mkdir -p /opt/wonderful
-          sudo chown -R $USER:$USER /opt/wonderful
-          wget https://wonderful.asie.pl/downloads/wonderful-toolchain-linux-x86_64.tar.gz
-          tar -xf wonderful-toolchain-linux-x86_64.tar.gz -C /opt/wonderful
-          echo "/opt/wonderful/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: |
-          wf-pacman -Syu --noconfirm
-          wf-pacman -S --noconfirm toolchain-gcc-arm-none-eabi zlib
+          # 手动下载 zlib 包（使用 GitHub 镜像，绕过 devkitPro 源的 403）
+          wget https://github.com/devkitPro/pacman-packages/releases/download/switch-zlib/switch-zlib-1.2.13-1-any.pkg.tar.zst -O /tmp/zlib.pkg.tar.zst
+          mkdir -p /opt/devkitpro/portlibs/switch
+          tar --use-compress-program=unzstd -xvf /tmp/zlib.pkg.tar.zst -C /opt/devkitpro/portlibs/switch --strip-components=1
+          ls /opt/devkitpro/portlibs/switch/include/zlib.h
 
       - name: Build
         run: |
-          export BLOCKSDS=/opt/blocksds/core
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITA64=$DEVKITPRO/devkitA64
+          export PORTLIBS=$DEVKITPRO/portlibs/switch
+          
+          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter -I$PORTLIBS/include"
+          export LDFLAGS="-L$PORTLIBS/lib -lz"
+          export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config
+          
           make -j$(nproc)

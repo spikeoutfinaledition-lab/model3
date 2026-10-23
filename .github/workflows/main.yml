@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          dkp-pacman -S --noconfirm switch-zlib switch-glad switch-mesa switch-glew
+          dkp-pacman -S --noconfirm switch-zlib switch-glad switch-mesa
 
       - name: Build
         run: |

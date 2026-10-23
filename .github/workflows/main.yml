@@ -13,21 +13,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Install devkitPro official script
-        run: |
-          wget https://apt.devkitpro.org/install-devkitpro-pacman
-          chmod +x ./install-devkitpro-pacman
-          sudo ./install-devkitpro-pacman
-
-      - name: Install Switch packages
-        run: |
-          sudo dkp-pacman -S --noconfirm devkitA64 switch-sdl2 switch-freetype switch-libpng switch-zlib
-
-      - name: Set env
-        run: |
-          echo "DEVKITPRO=/opt/devkitpro" >> $GITHUB_ENV
-          echo "DEVKITA64=/opt/devkitpro/devkitA64" >> $GITHUB_ENV
-          echo "PATH=/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin:$PATH" >> $GITHUB_ENV
+      - name: Setup devkitPro
+        uses: ilove2sleep/setup-devkitpro@v1
+        with:
+          target: a64
+          packages: devkitA64,switch-sdl2,switch-freetype,switch-libpng,switch-zlib
 
       - name: Build
         run: |

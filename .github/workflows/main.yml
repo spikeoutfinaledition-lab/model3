@@ -21,8 +21,9 @@ jobs:
           export DEVKITA64=$DEVKITPRO/devkitA64
           export PORTLIBS=$DEVKITPRO/portlibs/switch
           
-          export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter -I$PORTLIBS/include"
-          export LDFLAGS="-L$PORTLIBS/lib -lz"
-          export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config
+          export CFLAGS="-O2 -D__SWITCH__ -Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter -I$PORTLIBS/include -isystem$DEVKITPRO/libnx/include"
+          export CXXFLAGS="$CFLAGS"
+          export CPPFLAGS="-D__SWITCH__ -I$PORTLIBS/include -isystem$DEVKITPRO/libnx/include"
+          export LDFLAGS="-L$PORTLIBS/lib -L$DEVKITPRO/libnx/lib -lz"
           
           make -j$(nproc)

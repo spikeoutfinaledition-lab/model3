@@ -19,7 +19,10 @@ jobs:
 
       - name: Build with Make
         run: |
-          make -j$(nproc) CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable"
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITA64=$DEVKITPRO/devkitA64
+          export PATH=$DEVKITPRO/tools/bin:$PATH
+          make -j$(nproc) -f Makefile.libretro platform=switch
 
       - name: Upload NRO
         uses: actions/upload-artifact@v4

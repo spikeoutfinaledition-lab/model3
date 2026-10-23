@@ -858,13 +858,6 @@ static void LoadState(IEmulator *Model3, std::string file_path = std::string())
   SaveState.Close();
   printf("Loaded state from '%s'.\n", file_path.c_str());
   InfoLog("Loaded state from '%s'.", file_path.c_str());
-
-#ifdef HAVE_PPC_JIT
-  // After loading a state, the JIT code cache holds ARM64 blocks compiled
-  // against the old PC and RAM image. These must be dropped so that execution
-  // resumes from the restored PC with freshly translated blocks.
-  JitArm64::get().flush();
-#endif
 }
 
 static void SaveNVRAM(IEmulator *Model3)
@@ -1390,9 +1383,47 @@ int Supermodel(const Game &game, ROMSet *rom_set, IEmulator *Model3, CInputs *In
     // Check UI controls
 #ifdef __SWITCH__
     const bool switchExitCombo = SwitchExitComboPressed();
+
+    // L+R + 加号 = 即时存档
+    bool joyL = Inputs->GetButtonState(JOY1_BUTTON_L);
+    bool joyR = Inputs->GetButtonState(JOY1_BUTTON_R);
+    bool joyPlus = Inputs->uiFullScreen->Pressed();
+    bool joyMinus = Inputs->uiPause->Pressed();
+
+    if (joyL && joyR && joyPlus)
+    {
+        if (!paused)
+        {
+            Model3->PauseThreads();
+            SetAudioEnabled(false);
+        }
+        SaveState(Model3);
+        if (!paused)
+        {
+            Model3->ResumeThreads();
+            SetAudioEnabled(true);
+        }
+        InfoLog("即时存档已执行 (L+R + PLUS)\n");
+    }
+    else if (joyL && joyR && joyMinus)
+    {
+        if (!paused)
+        {
+            Model3->PauseThreads();
+            SetAudioEnabled(false);
+        }
+        LoadState(Model3);
+        if (!paused)
+        {
+            Model3->ResumeThreads();
+            SetAudioEnabled(true);
+        }
+        InfoLog("即时读档已执行 (L+R + MINUS)\n");
+    }
 #else
     const bool switchExitCombo = false;
 #endif
+
     if (Inputs->uiExit->Pressed() || switchExitCombo)
     {
       // Quit emulator

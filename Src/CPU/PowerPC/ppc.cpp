@@ -1088,15 +1088,6 @@ void ppc_load_state(CBlockFile *SaveState)
 	
 	SaveState->Read(ppc.fpr, sizeof(ppc.fpr));
 	SaveState->Read(ppc.sr, sizeof(ppc.sr));
-
-#ifdef HAVE_PPC_JIT
-	// The JIT code cache holds ARM64 blocks compiled against the *old* PowerPC
-	// PC and RAM image. After restoring a different PC (and potentially
-	// different RAM), those blocks and their cross-block backpatched links are
-	// stale and would resume execution at the wrong address. Drop the cache;
-	// blocks are recompiled on demand from the restored PC.
-	JitArm64::get().flush();
-#endif
 }
 
 UINT32 ppc_get_gpr(unsigned num)

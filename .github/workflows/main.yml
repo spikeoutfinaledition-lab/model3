@@ -15,17 +15,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Switch dependencies
-        run: |
-          dkp-pacman -Sy --noconfirm switch-zlib switch-bzip2 switch-pkg-config switch-gl4es switch-sdl2
-
       - name: Build
         run: |
           export DEVKITPRO=/opt/devkitpro
           export DEVKITA64=$DEVKITPRO/devkitA64
           export PORTLIBS=$DEVKITPRO/portlibs/switch
           
-          # 压制警告防止编译中断，不强行硬塞GL路径和链接参数
+          # 压制警告防止编译中断
           export CFLAGS="-Wno-error -Wno-discarded-qualifiers -Wno-unused-variable -Wno-unused-parameter"
           
           export PKG_CONFIG=$PORTLIBS/bin/aarch64-none-elf-pkg-config

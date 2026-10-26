@@ -1,32 +1,50 @@
-name: Build Switch NRO
-
-permissions:
-  contents: write
+name: Build Switch project
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container: devkitpro/devkita64:latest
-    
+    name: Build on Ubuntu x86_64
+    runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: |
-          dkp-pacman -S --noconfirm switch-dev switch-zlib switch-glad switch-mesa
+      - name: Set up devkitPro toolchain
+        uses: devkitpro/setup-devkitpro@master
+        with:
+          toolchains: devkitA64
+          packages: switch-tools switch-cmake
 
-      - name: Build
+      - name: Print toolchain version
         run: |
-          export DEVKITPRO=/opt/devkitpro
-          export DEVKITA64=$DEVKITPRO/devkitA64
-          export PORTLIBS=$DEVKITPRO/portlibs/switch
-          export CFLAGS="-I$PORTLIBS/include -Wno-error -w"
-          export LDFLAGS="-L$PORTLIBS/lib -lz"
-          make -j$(nproc)
+          aarch64-none-elf-gcc --version
+          cmake --version
+
+      - name: Configure project
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_TOOLCHAIN_FILE="${DEVKITPRO}/cmake/Switch.cmake" \
+            -DCMAKE_BUILD_TYPE=Release
+        env:
+          DEVKITPRO: /opt/devkitpro
+
+      - name: Build project
+        run: |
+          cmake --build build --config Release --verbose

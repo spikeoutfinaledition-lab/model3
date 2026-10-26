@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up devkitPro toolchain
-        uses: devkitpro/setup-devkitpro@master
+        uses: devkitPro/setup-devkitpro@master
         with:
           toolchains: devkitA64
           packages: switch-tools switch-cmake
